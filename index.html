@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>여행사 장보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* ───────────── 선생님이 바꿀 곳은 아래 <script> 맨 위 "설정" 부분이에요 ───────────── */
+:root{
+  --bg:#eef4fb; --paper:#ffffff; --ink:#1d2b45; --muted:#5d6b85; --line:#d3deec;
+  --accent:#f2b705; --accent-ink:#3b2a00; --navy:#22355e; --good:#1f8a5b; --bad:#c8402e;
+  --display:'Jua','Gowun Dodum',system-ui,sans-serif;
+  --body:'Gowun Dodum',system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --moon:#c99a10; --star:#4c5fd6; --nature:#2f8f4e; --history:#a5523a; --family:#d0548a;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f1729; --paper:#17223b; --ink:#e8eefb; --muted:#a3b0c9; --line:#2b3a5c;
+  --accent:#f5c431; --accent-ink:#2a1e00; --navy:#c9d6f5; --good:#4cc38a; --bad:#ff7a66;
+  --moon:#f0c43c; --star:#8f9dff; --nature:#5ccc80; --history:#e08b6f; --family:#f084b4; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding:20px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+h1{font-size:34px;color:var(--navy)} h2{font-size:22px} h3{font-size:19px}
+.top p{margin:4px 0 0;color:var(--muted)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{font:inherit;font-family:var(--display);font-size:17px;border:2px solid var(--line);background:var(--paper);color:var(--ink);
+  padding:8px 14px;border-radius:999px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.tab .dot{width:12px;height:12px;border-radius:50%;background:var(--c)}
+.tab[aria-pressed="true"]{border-color:var(--c);box-shadow:inset 0 0 0 2px var(--c)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pill{font-size:13px;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink)}
+.pill.sub{background:var(--good);color:#fff}
+.shop{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+@media (max-width:860px){.shop{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;border-left:6px solid var(--c);padding-left:12px}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px;font-size:15px;color:var(--muted)}
+.steps b{color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.row input{flex:1 1 180px;min-width:0}
+.row input.small{flex:0 1 110px}
+input,textarea{font:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--bg);color:var(--ink);width:100%}
+textarea{min-height:76px;resize:vertical}
+.shopbtn{font-family:var(--display);font-size:16px;text-decoration:none;border-radius:10px;padding:9px 14px;border:2px solid var(--navy);color:var(--navy);background:var(--paper);white-space:nowrap}
+.shopbtn[aria-disabled="true"]{opacity:.4;pointer-events:none}
+.help{font-size:13px;color:var(--muted);margin:0}
+.err{color:var(--bad);font-size:14px;margin:0;min-height:1.2em}
+.btn{font:inherit;font-family:var(--display);font-size:19px;border:none;border-radius:12px;padding:12px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.small{font-size:17px;padding:9px 24px;margin-left:auto}
+.btn.ghost{background:transparent;border:2px solid var(--line);color:var(--ink);font-size:16px;padding:8px}
+.receipt{position:sticky;top:12px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;font-variant-numeric:tabular-nums}
+.receipt h2{text-align:center}
+.sub{text-align:center;color:var(--muted);font-size:13px;margin-top:-8px}
+.bar{height:14px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c);transition:width .25s}
+.money{display:flex;justify-content:space-between;font-size:15px}
+.left{font-family:var(--display);font-size:24px;text-align:right}
+.lines{border-top:2px dashed var(--line);border-bottom:2px dashed var(--line);padding:8px 0;display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto}
+.line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;font-size:15px}
+.line small{grid-column:1/-1;color:var(--muted);display:flex;gap:8px;align-items:center}
+.line small button{font:inherit;font-size:12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:6px;padding:0 6px;cursor:pointer}
+.empty{color:var(--muted);text-align:center;font-size:14px;padding:10px 0}
+label{font-family:var(--display);font-size:16px}
+.done{border:2px solid var(--good);border-radius:12px;padding:12px;font-size:15px}
+.done textarea{margin-top:8px;min-height:120px}
+.notice{border:2px dashed var(--bad);border-radius:12px;padding:10px 14px;font-size:14px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>여행사 장보기</h1>
+    <p>우리 여행사 부스에 필요한 물건을 <b>60,000원</b> 안에서 아이스크림몰에서 찾아 담고, 고른 까닭을 써서 선생님께 보내요.</p>
+  </header>
+  <div id="notice" class="notice" hidden></div>
+  <nav class="tabs" id="tabs" aria-label="여행사 고르기"></nav>
+  <main id="view"></main>
+</div>
+
+<script>
+/* ═════════════ 설정 (선생님이 바꾸는 곳) ═════════════ */
+// 구글 Apps Script 웹 앱 주소를 따옴표 안에 붙여 넣으세요. (설정방법.md 4단계)
+const SEND_URL = '';
+// 여행사마다 쓸 수 있는 돈
+const BUDGET = 60000;
+// 여행사 이름 (공개 페이지라서 아이들 이름은 넣지 않아요)
+const AGENCIES = [
+  {id:'moon',    name:'달 관찰 여행사',     theme:'달 관찰',     color:'var(--moon)'},
+  {id:'star',    name:'별자리 야호 여행사', theme:'별자리',      color:'var(--star)'},
+  {id:'nature',  name:'푸른자연 여행사',    theme:'자연과 생태', color:'var(--nature)'},
+  {id:'history', name:'역사 속으로 여행사', theme:'역사와 문화', color:'var(--history)'},
+  {id:'family',  name:'한마음 여행사',      theme:'가족 체험',   color:'var(--family)'},
+];
+/* ═══════════════════════════════════════════════ */
+
+const won = n => Number(n).toLocaleString('ko-KR') + '원';
+const searchUrl = q => 'https://i-screammall.co.kr/search?searchWord=' + encodeURIComponent(q);
+const KEY = 'trip-shop-v1';
+let tab = AGENCIES[0].id;
+const orders = {};
+AGENCIES.forEach(a => orders[a.id] = {items:[], reason:'', sent:false, sentAt:''});
+try {
+  const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+  if (s) { if (s.tab) tab = s.tab; for (const a of AGENCIES) if (s.orders && s.orders[a.id]) orders[a.id] = {...orders[a.id], ...s.orders[a.id]}; }
+} catch (e) {}
+function store(){ try { localStorage.setItem(KEY, JSON.stringify({tab, orders})); } catch (e) {} }
+const total = o => o.items.reduce((s, it) => s + it.price * it.qty, 0);
+const ag = id => AGENCIES.find(a => a.id === id);
+
+if (!SEND_URL) {
+  const n = document.getElementById('notice'); n.hidden = false;
+  n.innerHTML = '<b>아직 보낼 곳이 연결되지 않았어요.</b> 지금은 주문서를 복사해서 선생님께 보내는 방식으로 동작해요. (선생님: 설정방법.md 4단계)';
+}
+
+function renderTabs(){
+  const el = document.getElementById('tabs'); el.innerHTML = '';
+  for (const a of AGENCIES) {
+    const b = document.createElement('button'); b.className = 'tab'; b.style.setProperty('--c', a.color);
+    b.setAttribute('aria-pressed', tab === a.id);
+    b.innerHTML = '<span class="dot"></span>';
+    b.append(a.name);
+    if (orders[a.id].sent) { const p = document.createElement('span'); p.className = 'pill sub'; p.textContent = '보냄'; b.append(' ', p); }
+    b.onclick = () => { tab = a.id; store(); render(); };
+    el.appendChild(b);
+  }
+}
+
+function render(){
+  renderTabs();
+  const a = ag(tab) || AGENCIES[0], o = orders[a.id];
+  const view = document.getElementById('view'); view.innerHTML = '';
+  const wrap = document.createElement('div'); wrap.className = 'shop'; wrap.style.setProperty('--c', a.color);
+
+  /* 왼쪽: 찾아 담기 */
+  const p = document.createElement('section'); p.className = 'panel';
+  p.innerHTML = `
+    <div class="head"><h2></h2><span class="pill"></span></div>
+    <h3>아이스크림몰에서 찾아 담기</h3>
+    <ul class="steps">
+      <li><b>①</b> 찾고 싶은 물건을 쓰고 <b>아이스크림몰에서 찾기</b>를 눌러요.</li>
+      <li><b>②</b> 고른 물건의 <b>상품 이름을 꾹 눌러 복사</b>해서 붙여 넣고, 가격을 적어요.</li>
+      <li><b>③</b> 할 수 있으면 상품 주소도 붙이고, <b>담기</b>를 눌러요.</li>
+    </ul>
+    <div class="row"><input id="q" placeholder="검색어 예: 야광 별 스티커" maxlength="40" aria-label="검색어">
+      <a class="shopbtn" id="go" target="_blank" rel="noopener" aria-disabled="true" href="https://i-screammall.co.kr/">아이스크림몰에서 찾기</a></div>
+    <div class="row"><input id="nm" placeholder="상품 이름 붙여 넣기 (쇼핑몰에 쓰여 있는 그대로)" maxlength="120" aria-label="상품 이름">
+      <input id="pr" class="small" type="number" min="0" step="10" placeholder="가격(원)" aria-label="가격">
+      <input id="qt" class="small" type="number" min="1" max="20" value="1" aria-label="개수" style="flex-basis:70px"></div>
+    <div class="row"><input id="ln" placeholder="상품 주소 붙여 넣기 (안 넣어도 돼요)" aria-label="상품 주소"></div>
+    <p class="help">상품 화면 위쪽 <b>주소창을 누르고 전체 선택 → 복사</b>해서 붙여 넣어요. 어려우면 비워도 담을 수 있어요.</p>
+    <div class="row"><span class="pill">쇼핑몰: 아이스크림몰</span><button class="btn small" id="add">담기</button></div>
+    <p class="err" id="err" role="status"></p>`;
+  p.querySelector('h2').textContent = a.name;
+  p.querySelector('.head .pill').textContent = a.theme;
+  const q = p.querySelector('#q'), go = p.querySelector('#go'), err = p.querySelector('#err');
+  q.oninput = () => { const k = q.value.trim(); go.href = searchUrl(k); go.setAttribute('aria-disabled', !k); };
+  const locked = o.sent;
+  p.querySelector('#add').disabled = locked;
+  let warned = false;
+  p.querySelector('#add').onclick = () => {
+    const nm = p.querySelector('#nm').value.trim();
+    const pr = Math.round(Number(p.querySelector('#pr').value) || 0);
+    const qt = Math.max(1, Math.min(20, Math.round(Number(p.querySelector('#qt').value) || 1)));
+    let ln = p.querySelector('#ln').value.trim();
+    if (ln && !/^https?:\/\//.test(ln) && /i-screammall\.co\.kr/.test(ln)) ln = 'https://' + ln.replace(/^\/+/, '');
+    if (ln) ln = ln.replace(/^http:\/\//, 'https://');
+    if (!nm) { err.textContent = '상품 이름을 붙여 넣어 주세요.'; return; }
+    if (nm.length < 8 && !warned) { warned = true; err.textContent = '이름이 짧아요. 쇼핑몰에 쓰여 있는 상품 이름을 그대로 붙이면 선생님이 찾기 쉬워요. 그래도 담으려면 한 번 더 눌러요.'; return; }
+    if (pr <= 0) { err.textContent = '가격을 숫자로 적어 주세요.'; return; }
+    if (ln && !/^https:\/\/\S+$/.test(ln)) { err.textContent = '주소는 https:// 로 시작해야 해요. 주소창의 주소를 그대로 복사해 주세요.'; return; }
+    if (pr * qt > BUDGET - total(o)) { err.textContent = '남은 돈이 모자라요. 다른 물건을 빼거나 더 싼 물건을 찾아봐요.'; return; }
+    o.items.push({name:nm, price:pr, qty:qt, link:ln}); store(); render();
+  };
+  if (locked) err.textContent = '주문을 보냈어요. 바꾸려면 영수증의 "다시 고르기"를 눌러요.';
+
+  /* 오른쪽: 영수증 */
+  const r = document.createElement('aside'); r.className = 'receipt';
+  const t = total(o);
+  r.innerHTML = `<h2></h2><div class="sub">예산 ${won(BUDGET)}</div>
+    <div class="bar"><i style="width:${Math.min(100, t / BUDGET * 100)}%"></i></div>
+    <div class="money"><span>쓴 돈 ${won(t)}</span><span>남은 돈</span></div>
+    <div class="left">${won(BUDGET - t)}</div>`;
+  r.querySelector('h2').textContent = a.name + ' 영수증';
+  const lines = document.createElement('div'); lines.className = 'lines';
+  if (!o.items.length) lines.innerHTML = '<div class="empty">아직 담은 물건이 없어요.<br>아이스크림몰에서 찾아 담아요.</div>';
+  o.items.forEach((it, i) => {
+    const d = document.createElement('div'); d.className = 'line';
+    const n = document.createElement('span'); n.textContent = `${it.name} × ${it.qty}`;
+    const m = document.createElement('span'); m.textContent = won(it.price * it.qty);
+    const s = document.createElement('small');
+    const l = document.createElement('a'); l.href = it.link || searchUrl(it.name); l.target = '_blank'; l.rel = 'noopener';
+    l.textContent = it.link ? '물건 보기' : '아이스크림몰에서 찾기'; s.append(l);
+    if (!locked) { const x = document.createElement('button'); x.textContent = '빼기'; x.onclick = () => { o.items.splice(i, 1); store(); render(); }; s.append(x); }
+    d.append(n, m, s); lines.appendChild(d);
+  });
+  r.appendChild(lines);
+
+  const lab = document.createElement('label'); lab.htmlFor = 'why'; lab.textContent = '이렇게 고른 까닭';
+  const hp = document.createElement('p'); hp.className = 'help'; hp.textContent = '꼭 필요한 것부터 골랐나요? 비슷한 물건 중에서 왜 이걸 골랐는지 써요.';
+  const ta = document.createElement('textarea'); ta.id = 'why'; ta.value = o.reason; ta.disabled = locked;
+  ta.placeholder = '예: 별자리판이 있어야 관람객이 북극성을 찾아볼 수 있어서 가장 먼저 골랐어요.';
+  const send = document.createElement('button'); send.className = 'btn';
+  const why = document.createElement('p'); why.className = 'help';
+  const can = () => !locked && o.items.length > 0 && total(o) <= BUDGET && o.reason.trim().length >= 5;
+  const upd = () => { send.disabled = !can(); why.textContent = locked ? '' : (o.reason.trim().length < 5 ? '고른 까닭을 쓰면 보낼 수 있어요.' : ''); };
+  ta.oninput = () => { o.reason = ta.value; store(); upd(); };
+  send.textContent = locked ? '선생님께 보냈어요' : (SEND_URL ? '선생님께 보내기' : '주문서 만들기');
+  send.onclick = () => submit(a, send);
+  upd();
+  r.append(lab, hp, ta, send, why);
+
+  if (locked) {
+    const box = document.createElement('div'); box.className = 'done';
+    box.innerHTML = SEND_URL ? '<b>보냈어요!</b> 선생님 구글 시트에 들어갔어요.' : '<b>주문서</b> 아래 내용을 모두 복사해서 선생님께 보내 주세요.';
+    if (o.sentAt) box.append(document.createElement('br'), '보낸 시각: ' + o.sentAt);
+    if (!SEND_URL) {
+      const tx = document.createElement('textarea'); tx.readOnly = true; tx.value = slip(a, o);
+      const cp = document.createElement('button'); cp.className = 'btn'; cp.style.cssText = 'width:100%;margin-top:8px'; cp.textContent = '주문서 복사하기';
+      cp.onclick = async () => { try { await navigator.clipboard.writeText(tx.value); cp.textContent = '복사했어요!'; } catch (e) { tx.focus(); tx.select(); cp.textContent = '글자가 모두 선택됐어요. 복사해서 보내요'; } };
+      box.append(tx, cp);
+    }
+    const again = document.createElement('button'); again.className = 'btn ghost'; again.style.cssText = 'width:100%;margin-top:8px'; again.textContent = '다시 고르기';
+    again.onclick = () => { o.sent = false; store(); render(); };
+    box.append(again); r.appendChild(box);
+  }
+  wrap.append(p, r); view.appendChild(wrap);
+}
+
+function slip(a, o){
+  const L = [`[${a.name} 주문서]`];
+  o.items.forEach(it => L.push(`- ${it.name} × ${it.qty} (${won(it.price * it.qty)})${it.link ? ' ' + it.link : ''}`));
+  L.push(`합계 ${won(total(o))}`, `까닭: ${o.reason}`);
+  return L.join('\n');
+}
+
+async function submit(a, btn){
+  const o = orders[a.id];
+  const stamp = new Date().toLocaleString('ko-KR');
+  if (!SEND_URL) { o.sent = true; o.sentAt = stamp; store(); render(); return; }
+  btn.disabled = true; btn.textContent = '보내는 중…';
+  const body = JSON.stringify({agency:a.name, total:total(o), budget:BUDGET, reason:o.reason,
+    items:o.items.map(it => ({name:it.name, price:it.price, qty:it.qty, link:it.link || '', search:searchUrl(it.name)}))});
+  try {
+    // 구글 Apps Script는 다른 사이트에서 오는 응답을 읽을 수 없게 막혀 있어서 no-cors로 보내요.
+    await fetch(SEND_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body});
+    o.sent = true; o.sentAt = stamp; store(); render();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = '다시 보내기';
+    const w = btn.parentElement.querySelector('.help:last-child');
+    if (w) w.textContent = '보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.';
+  }
+}
+
+render();
+</script>
+</body>
+</html>
