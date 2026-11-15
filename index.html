@@ -21,6 +21,7 @@
   --accent:#f5c431; --accent-ink:#2a1e00; --navy:#c9d6f5; --good:#4cc38a; --bad:#ff7a66;
   --moon:#f0c43c; --star:#8f9dff; --nature:#5ccc80; --history:#e08b6f; --family:#f084b4; color-scheme:dark}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
   padding:20px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
@@ -70,6 +71,7 @@ textarea{min-height:76px;resize:vertical}
 label{font-family:var(--display);font-size:16px}
 .done{border:2px solid var(--good);border-radius:12px;padding:12px;font-size:15px}
 .done textarea{margin-top:8px;min-height:120px}
+.rename{font:inherit;font-size:13px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:3px 8px;cursor:pointer;margin-left:auto}
 .notice{border:2px dashed var(--bad);border-radius:12px;padding:10px 14px;font-size:14px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
@@ -104,14 +106,15 @@ const AGENCIES = [
 const won = n => Number(n).toLocaleString('ko-KR') + '원';
 const searchUrl = q => 'https://i-screammall.co.kr/search?searchWord=' + encodeURIComponent(q);
 const KEY = 'trip-shop-v1';
+AGENCIES.forEach(a => a.orig = a.name);
 let tab = AGENCIES[0].id;
 const orders = {};
 AGENCIES.forEach(a => orders[a.id] = {items:[], reason:'', sent:false, sentAt:''});
 try {
   const s = JSON.parse(localStorage.getItem(KEY) || 'null');
-  if (s) { if (s.tab) tab = s.tab; for (const a of AGENCIES) if (s.orders && s.orders[a.id]) orders[a.id] = {...orders[a.id], ...s.orders[a.id]}; }
+  if (s) { if (s.tab) tab = s.tab; if (s.names) for (const a of AGENCIES) if (s.names[a.id]) a.name = String(s.names[a.id]).slice(0, 20); for (const a of AGENCIES) if (s.orders && s.orders[a.id]) orders[a.id] = {...orders[a.id], ...s.orders[a.id]}; }
 } catch (e) {}
-function store(){ try { localStorage.setItem(KEY, JSON.stringify({tab, orders})); } catch (e) {} }
+function store(){ const names = {}; AGENCIES.forEach(a => { if (a.name !== a.orig) names[a.id] = a.name; }); try { localStorage.setItem(KEY, JSON.stringify({tab, orders, names})); } catch (e) {} }
 const total = o => o.items.reduce((s, it) => s + it.price * it.qty, 0);
 const ag = id => AGENCIES.find(a => a.id === id);
 
@@ -142,7 +145,8 @@ function render(){
   /* 왼쪽: 찾아 담기 */
   const p = document.createElement('section'); p.className = 'panel';
   p.innerHTML = `
-    <div class="head"><h2></h2><span class="pill"></span></div>
+    <div class="head"><h2></h2><span class="pill"></span><button class="rename" id="rn" type="button">이름 바꾸기</button></div>
+    <div class="row" id="rnbox" hidden><input id="rnin" maxlength="20" aria-label="새 여행사 이름"><button class="btn small" id="rnok" type="button" style="margin-left:0">저장</button><button class="rename" id="rnno" type="button">취소</button></div>
     <h3>아이스크림몰에서 찾아 담기</h3>
     <ul class="steps">
       <li><b>①</b> 찾고 싶은 물건을 쓰고 <b>아이스크림몰에서 찾기</b>를 눌러요.</li>
@@ -160,6 +164,12 @@ function render(){
     <p class="err" id="err" role="status"></p>`;
   p.querySelector('h2').textContent = a.name;
   p.querySelector('.head .pill').textContent = a.theme;
+  const rn = p.querySelector('#rn'), rnbox = p.querySelector('#rnbox'), rnin = p.querySelector('#rnin');
+  rn.onclick = () => { rnbox.hidden = false; rn.hidden = true; rnin.value = a.name; rnin.focus(); rnin.select(); };
+  p.querySelector('#rnno').onclick = () => { rnbox.hidden = true; rn.hidden = false; };
+  const saveName = () => { const v = rnin.value.trim(); if (!v) { rnin.focus(); return; } a.name = v.slice(0, 20); store(); render(); };
+  p.querySelector('#rnok').onclick = saveName;
+  rnin.onkeydown = ev => { if (ev.key === 'Enter') saveName(); if (ev.key === 'Escape') { rnbox.hidden = true; rn.hidden = false; } };
   const q = p.querySelector('#q'), go = p.querySelector('#go'), err = p.querySelector('#err');
   q.oninput = () => { const k = q.value.trim(); go.href = searchUrl(k); go.setAttribute('aria-disabled', !k); };
   const locked = o.sent;
@@ -246,7 +256,7 @@ async function submit(a, btn){
   const stamp = new Date().toLocaleString('ko-KR');
   if (!SEND_URL) { o.sent = true; o.sentAt = stamp; store(); render(); return; }
   btn.disabled = true; btn.textContent = '보내는 중…';
-  const body = JSON.stringify({agency:a.name, total:total(o), budget:BUDGET, reason:o.reason,
+  const body = JSON.stringify({agency: a.name === a.orig ? a.name : `${a.name} (${a.orig})`, total:total(o), budget:BUDGET, reason:o.reason,
     items:o.items.map(it => ({name:it.name, price:it.price, qty:it.qty, link:it.link || '', search:searchUrl(it.name)}))});
   try {
     // 구글 Apps Script는 다른 사이트에서 오는 응답을 읽을 수 없게 막혀 있어서 no-cors로 보내요.
